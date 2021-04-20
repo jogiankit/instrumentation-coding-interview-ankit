@@ -1,0 +1,7 @@
+ARG_ENABLE('solarwinds', 'solarwinds support', 'no');
+
+if (PHP_SOLARWINDS != 'no') {
+	AC_DEFINE('HAVE_SOLARWINDS', 1, 'solarwinds support enabled');
+
+	EXTENSION('solarwinds', 'solarwinds.c', null, '/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1');
+}
