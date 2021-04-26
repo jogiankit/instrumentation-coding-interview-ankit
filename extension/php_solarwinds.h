@@ -8,6 +8,10 @@ extern zend_module_entry solarwinds_module_entry;
 
 # define PHP_SOLARWINDS_VERSION "0.0.1"
 
+PHP_FUNCTION(SolarwindsIncrement);
+PHP_FUNCTION(SolarwindsGetTotal);
+PHP_FUNCTION(SolarwindsReset);
+
 # if defined(ZTS) && defined(COMPILE_DL_SOLARWINDS)
 ZEND_TSRMLS_CACHE_EXTERN()
 # endif

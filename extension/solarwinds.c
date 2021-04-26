@@ -4,6 +4,8 @@
 # include "config.h"
 #endif
 
+#include <pthread.h>
+
 #include "php.h"
 #include "ext/standard/info.h"
 #include "php_solarwinds.h"
@@ -15,6 +17,10 @@
         ZEND_PARSE_PARAMETERS_END()
 #endif
 
+/* Global counter and mutex lock for it */
+static unsigned long int g_count = 0;
+pthread_mutex_t g_count_lock;
+
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(solarwinds)
 {
@@ -22,14 +28,58 @@ PHP_MINIT_FUNCTION(solarwinds)
     ZEND_TSRMLS_CACHE_UPDATE();
 #endif
     printf("PHP_MINIT_FUNCTION solarwinds\n");
+
+    /* Initialize g_count_lock for g_count */
+    if (pthread_mutex_init(&g_count_lock, NULL) != 0) {
+        printf("g_count_lock init failed!\n");
+        return FAILURE;
+    }
     return SUCCESS;
 }
+/* }}} */
+
+/* {{{ SolarwindsIncrement */
+PHP_FUNCTION(SolarwindsIncrement)
+{
+    pthread_mutex_lock(&g_count_lock);
+    ++g_count;
+    pthread_mutex_unlock(&g_count_lock);
+}
+/* }}} */
+
+/* {{{ SolarwindsGetTotal */
+PHP_FUNCTION(SolarwindsGetTotal)
+{
+    RETURN_LONG(g_count);
+}
+/* }}} */
+
+/* {{{ SolarwindsReset */
+PHP_FUNCTION(SolarwindsReset)
+{
+    pthread_mutex_lock(&g_count_lock);
+    g_count=0;
+    pthread_mutex_unlock(&g_count_lock);
+}
+/* }}} */
+
+/* {{{ zend_function_entry */
+zend_function_entry counter_functions[] = {
+        PHP_FE(SolarwindsIncrement, NULL)
+        PHP_FE(SolarwindsGetTotal, NULL)
+        PHP_FE(SolarwindsReset, NULL)
+        PHP_FE_END
+};
 /* }}} */
 
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(solarwinds)
 {
     printf("PHP_MSHUTDOWN_FUNCTION solarwinds\n");
+
+    /* Deinitialize g_count_lock */
+    pthread_mutex_destroy(&g_count_lock);
+
     return SUCCESS;
 }
 /* }}} */
@@ -64,7 +114,7 @@ PHP_MINFO_FUNCTION(solarwinds)
 zend_module_entry solarwinds_module_entry = {
         STANDARD_MODULE_HEADER,
         "solarwinds",               /* Extension name */
-        NULL,                       /* zend_function_entry */
+        counter_functions,          /* zend_function_entry */
         PHP_MINIT(solarwinds),      /* PHP_MINIT - Module initialization */
         PHP_MSHUTDOWN(solarwinds),  /* PHP_MSHUTDOWN - Module shutdown */
         PHP_RINIT(solarwinds),      /* PHP_RINIT - Request initialization */
