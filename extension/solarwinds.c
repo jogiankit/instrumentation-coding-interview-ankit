@@ -20,6 +20,7 @@
 /* Global counter and mutex lock for it */
 static unsigned long int g_count = 0;
 pthread_mutex_t g_count_lock;
+char *dummy_data = NULL;
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(solarwinds)
@@ -59,6 +60,8 @@ PHP_FUNCTION(SolarwindsReset)
 {
     pthread_mutex_lock(&g_count_lock);
     g_count=0;
+    if (NULL == dummy_data)
+        dummy_data = malloc(sizeof(int) * 1000);
     pthread_mutex_unlock(&g_count_lock);
 }
 /* }}} */
@@ -87,7 +90,7 @@ PHP_MSHUTDOWN_FUNCTION(solarwinds)
 /* {{{ PHP_RINIT_FUNCTION */
 PHP_RINIT_FUNCTION(solarwinds)
 {
-    printf("PHP_RINIT_FUNCTION solarwinds\n");
+    //printf("PHP_RINIT_FUNCTION solarwinds\n");
     return SUCCESS;
 }
 /* }}} */
@@ -95,7 +98,7 @@ PHP_RINIT_FUNCTION(solarwinds)
 /* {{{ PHP_RSHUTDOWN_FUNCTION */
 PHP_RSHUTDOWN_FUNCTION(solarwinds)
 {
-    printf("PHP_RSHUTDOWN_FUNCTION solarwinds\n");
+    //printf("PHP_RSHUTDOWN_FUNCTION solarwinds\n");
     return SUCCESS;
 }
 /* }}} */
